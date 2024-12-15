@@ -67,7 +67,6 @@ data <- data[,c(1,2)]
 data <- data %>%
   mutate(year = year(Date)) 
 
-#Rozklady wartosci dla obydwoch lat
 ggplot(data, aes(x = PM10)) +
   geom_histogram(bins = 30, fill = "lightblue", color = "black", alpha = 0.7) +
   facet_wrap(~ year, ncol = 2) + 
@@ -161,7 +160,7 @@ train_and_evaluate_nn <- function(train_data, test_data, target_var, predictors,
   return(mae_value)
 }
 
-
+#Model 1
 
 target_var <- "PM10"
 predictors <- c("lag1")
@@ -180,7 +179,6 @@ for (neurons in 1:30) {
 for (layers in 2:4) {
   
   for (neurons in 1:20) {
-    #hidden_layers <- rep(neurons, layers)
     hidden_layers <- sample(1:neurons, layers, replace = TRUE) 
     mape_result <- train_and_evaluate_nn(train_data, test_data, target_var, predictors, hidden_layers, min_pm10 = min_pm10, max_pm10 = max_pm10)
     print(paste(
@@ -297,7 +295,7 @@ for (layers in 2:4) {
 
 
 
-# Trening modelu
+
 nn_model <- neuralnet(
   PM10 ~ lag1 +Month,  
   data = train_data,
@@ -305,13 +303,10 @@ nn_model <- neuralnet(
   linear.output = TRUE
 )
 
-# Wizualizacja modelu
 plot(nn_model)
 
-# Prognozowanie
 predictions <- compute(nn_model, test_data[, c("lag1", "Month"), drop = FALSE])$net.result
 
-# Dodanie prognoz do testowych danych
 test_data <- test_data %>%
   mutate(predicted_PM10 = predictions)
 
@@ -321,7 +316,7 @@ test_data2 <- test_data %>%
 test_data2 <- test_data2 %>%
   mutate(PM10_original = PM10 * (max_pm10 - min_pm10) + min_pm10)
 
-library(Metrics)
+
 
 print(head(test_data2))
 
@@ -364,8 +359,8 @@ mae(test_pred$predicted_PM10_original, test_pred$PM10_original)
 mape(test_pred$predicted_PM10_original, test_pred$PM10_original)
 
 
-
-window_size <- 10  # Liczba dni w oknie
+# Model 2
+window_size <- 10  
 sequence_data <- function(data, window_size) {
   X <- array(dim = c(nrow(data) - window_size, window_size, 1)) 
   Y <- array(dim = c(nrow(data) - window_size, 1))            
@@ -378,7 +373,6 @@ sequence_data <- function(data, window_size) {
 }
 
 
-# Przygotowanie danych
 data_sequences <- sequence_data(data, window_size)
 X <- data_sequences$X
 Y <- data_sequences$Y
@@ -447,9 +441,6 @@ mape(predictions, Y_test)
 
 # mape(predictions, Y_test)
 #0.3271907
-
-
-
 
 
 
